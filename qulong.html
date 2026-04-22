@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전기 기초 마스터: 쿨롱의 법칙</title>
+    <style>
+
+                /* 메인으로 가기 버튼 스타일 */
+.btn-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    color: #3498db;
+    border: 2px solid #3498db;
+    padding: 10px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* 마우스 커서 올렸을 때(Hover) 이펙트 */
+.btn-home:hover {
+    background-color: #3498db;
+    color: white;
+    transform: scale(1.05) translateX(5px);
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 768px) {
+    .btn-home {
+        top: 10px;
+        left: 10px;
+        padding: 8px 14px;
+        font-size: 0.8em;
+    }
+}
+        /* [레이아웃 통일] 공통 스타일 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; background-color: #f0f2f5; padding: 40px 20px; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 15px; margin-bottom: 30px; font-size: 2.2em; text-align: center; }
+        h2 { color: #34495e; margin-bottom: 20px; font-size: 1.5em; display: flex; align-items: center; }
+        .section { margin-bottom: 50px; padding: 25px; border: 1px solid #eef2f7; border-radius: 15px; background-color: #fcfcfc; }
+        
+        /* 시각화 영역 통일: 높이 350px로 고정 */
+        .visualizer-container { text-align: center; background: #2c3e50; color: white; padding: 30px; border-radius: 12px; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        
+        /* 쿨롱의 법칙 전용 시각화 요소 */
+        .charge-container { display: flex; align-items: center; justify-content: space-between; width: 80%; position: relative; }
+        .charge { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2em; z-index: 10; transition: transform 0.2s; border: 3px solid rgba(255,255,255,0.3); }
+        .charge-q1 { background: #e74c3c; box-shadow: 0 0 20px #e74c3c; }
+        .charge-q2 { background: #3498db; box-shadow: 0 0 20px #3498db; }
+        .force-arrow { height: 4px; background: #f1c40f; position: relative; transition: width 0.2s; }
+        .force-arrow::after { content: '▶'; position: absolute; right: -10px; top: -10px; color: #f1c40f; font-size: 20px; }
+
+        /* 컨트롤러 및 결과 텍스트 */
+        .controls { margin-bottom: 25px; display: flex; justify-content: center; gap: 30px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; flex-wrap: wrap; }
+        .control-item { display: flex; align-items: center; gap: 10px; }
+        .result-text { text-align: center; margin-top: 20px; font-weight: bold; color: #2980b9; font-size: 1.3em; height: auto; }
+
+        /* 퀴즈 시스템 통일 */
+        #quiz-container { background: #fff; padding: 10px; }
+        .progress { margin-bottom: 15px; font-weight: bold; color: #3498db; font-size: 1.1em; }
+        .quiz-question { font-size: 1.3em; font-weight: bold; margin-bottom: 20px; color: #2c3e50; line-height: 1.4; }
+        .quiz-option { display: block; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 1.1em; }
+        .quiz-option:hover { border-color: #3498db; background: #eef7fe; }
+        .quiz-option.correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        .quiz-option.wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        .explanation { margin-top: 20px; padding: 20px; background: #e8f4fd; border-left: 5px solid #3498db; border-radius: 5px; display: none; }
+        .btn-next { margin-top: 20px; padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; display: none; }
+        .btn-next:hover { background: #2980b9; }
+
+        .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.5s ease-out;
+}
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.rank-badge {
+    font-size: 3em;
+    margin: 20px 0;
+    display: block;
+}
+.rank-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 10px;
+}
+.score-text {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 25px;
+}
+.btn-restart {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-restart:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    </style>
+</head>
+<body>
+
+        <a href="main.html" class="btn-home">
+    <span>🏠</span> 메인으로 돌아가기
+</a>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div id="rankBadge" class="rank-badge">⚡</div>
+        <div id="rankName" class="rank-text">등급</div>
+        <div id="finalScore" class="score-text">0점</div>
+        <button class="btn-restart" onclick="closeModal()">다시 도전하기</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1>📐 쿨롱의 법칙: 전하 사이의 힘</h1>
+
+    <div class="section">
+        <h2>1. 정전기력 시각화 계산기</h2>
+        <div class="controls">
+            <div class="control-item">
+                <label>전하량(Q1): </label>
+                <input type="range" id="q1Range" min="1" max="100" value="50" oninput="calculateForce()" style="width:120px;">
+                <span id="q1Val" style="font-weight:bold; color:#e74c3c;">50</span>μC
+            </div>
+            <div class="control-item">
+                <label>거리(r): </label>
+                <input type="range" id="rRange" min="1" max="10" value="5" oninput="calculateForce()" style="width:120px;">
+                <span id="rVal" style="font-weight:bold; color:#f1c40f;">5</span>m
+            </div>
+        </div>
+        
+        <div class="visualizer-container" id="vizArea">
+            <div class="charge-container" id="chargePath">
+                <div class="charge charge-q1" id="q1Obj">Q1</div>
+                <div class="force-arrow" id="forceLine"></div>
+                <div class="charge charge-q2" id="q2Obj">Q2</div>
+            </div>
+            <div id="forceLabel" style="margin-top: 30px; font-size: 1.2em; color: #f1c40f;">작용하는 힘(F): 0.90 N</div>
+        </div>
+        <p id="calcResult" class="result-text">
+            두 전하 사이의 거리가 멀어지면 힘은 급격히 약해집니다.<br>
+            (거리의 제곱에 반비례)
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>2. 정전기력 기초 퀴즈</h2>
+        <div id="quiz-container">
+            <div class="progress" id="progress">문제 1 / 5</div>
+            <div class="quiz-question" id="question">질문 로딩 중...</div>
+            <div id="options"></div>
+            <div class="explanation" id="explanation">
+                <strong>💡 해설:</strong> <span id="exp-text"></span>
+            </div>
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()">다음 문제로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateForce() {
+        const Q1 = parseFloat(document.getElementById('q1Range').value);
+        const r = parseFloat(document.getElementById('rRange').value);
+        const Q2 = 50; // Q2는 50μC로 고정값 가정
+        
+        document.getElementById('q1Val').innerText = Q1;
+        document.getElementById('rVal').innerText = r;
+
+        // 쿨롱의 법칙: F = k * (Q1*Q2) / r^2 (k는 약 9*10^9이나 시각화를 위해 상수 조정)
+        const k = 0.009; 
+        const F = (k * Q1 * Q2) / (r * r);
+
+        // 시각화 업데이트
+        const q1Obj = document.getElementById('q1Obj');
+        const forceLine = document.getElementById('forceLine');
+        const chargePath = document.getElementById('chargePath');
+        const forceLabel = document.getElementById('forceLabel');
+
+        // 거리 시각화 (width 조절)
+        chargePath.style.width = (40 + r * 5) + "%";
+        
+        // 전하 크기 시각화 (scale 조절)
+        q1Obj.style.transform = `scale(${0.5 + Q1/100})`;
+        
+        // 화살표 굵기 (힘의 세기)
+        forceLine.style.height = Math.min(F * 10, 15) + "px";
+        
+        forceLabel.innerText = `작용하는 힘(F): ${F.toFixed(2)} [N]`;
+    }
+
+    const quizData = [
+        { q: "두 전하 사이에 작용하는 힘의 크기를 결정하는 법칙은?", a: ["옴의 법칙", "줄의 법칙", "쿨롱의 법칙", "렌츠의 법칙"], cor: 2, exp: "쿨롱의 법칙은 두 점전하 사이에 작용하는 정전기력이 전하량의 곱에 비례하고 거리의 제곱에 반비례한다는 법칙입니다." },
+        { q: "두 전하 사이의 거리가 2배로 멀어지면 힘의 크기는 어떻게 되는가?", a: ["2배가 된다", "1/2배가 된다", "4배가 된다", "1/4배가 된다"], cor: 3, exp: "힘은 거리의 '제곱'에 반비례하므로, 거리가 2배가 되면 힘은 1/(2^2)인 1/4배로 줄어듭니다." },
+        { q: "같은 극성의 두 전하(+, +) 사이에 작용하는 힘은?", a: ["흡인력(당기는 힘)", "반발력(미는 힘)", "회전력", "마찰력"], cor: 1, exp: "같은 극성끼리는 서로 밀어내는 반발력이 작용하고, 다른 극성(+와 -)끼리는 당기는 흡인력이 작용합니다." },
+        { q: "쿨롱의 법칙에서 힘(F)은 전하량의 곱에 ( )한다. 빈칸은?", a: ["비례", "반비례", "무관", "제곱 비례"], cor: 0, exp: "전하의 양이 많아질수록 전하 사이의 전기력은 더 강해지므로 서로 비례 관계입니다." },
+        { q: "진공의 유전율(ε₀) 단위로 옳은 것은?", a: ["[V/m]", "[A/m]", "[F/m]", "[Ω/m]"], cor: 2, exp: "유전율의 단위는 [F/m](패럿 퍼 미터)를 사용하며, 전하가 전기를 얼마나 잘 축적하는지를 나타냅니다." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuiz() {
+        const qData = quizData[currentIdx];
+        document.getElementById('progress').innerText = `문제 ${currentIdx + 1} / ${quizData.length}`;
+        document.getElementById('question').innerText = qData.q;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        qData.a.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.innerText = `${index + 1}. ${opt}`;
+            div.onclick = () => checkQuiz(index, div);
+            optionsDiv.appendChild(div);
+        });
+        document.getElementById('explanation').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'none';
+    }
+
+    function checkQuiz(choice, element) {
+        const correctIdx = quizData[currentIdx].cor;
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach(opt => opt.onclick = null);
+        if (choice === correctIdx) { element.classList.add('correct'); score++; }
+        else { element.classList.add('wrong'); options[correctIdx].classList.add('correct'); }
+        document.getElementById('exp-text').innerText = quizData[currentIdx].exp;
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'inline-block';
+        if(currentIdx === quizData.length - 1) document.getElementById('btn-next').innerText = "결과 보기";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) loadQuiz();
+        else { alert(`학습 완료! 점수: ${score * 20}점`); currentIdx = 0; score = 0; loadQuiz(); }
+    }
+
+    window.onload = () => { calculateForce(); loadQuiz(); };
+
+    function nextQuestion() {
+    currentIdx++;
+    if (currentIdx < quizData.length) {
+        loadQuiz();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    const total = quizData.length;
+    const finalScore = score * (100 / total);
+    let rank = "";
+    let emoji = "";
+
+    // 랭크 판정 로직
+    if (score === total) {
+        rank = "전기 마스터 (S급)";
+        emoji = "👑";
+    } else if (score >= total * 0.8) {
+        rank = "베테랑 기술자 (A급)";
+        emoji = "🔧";
+    } else if (score >= total * 0.6) {
+        rank = "숙련된 조수 (B급)";
+        emoji = "💡";
+    } else {
+        rank = "전기 초보 (C급)";
+        emoji = "👶";
+    }
+
+    document.getElementById('rankBadge').innerText = emoji;
+    document.getElementById('rankName').innerText = rank;
+    document.getElementById('finalScore').innerText = `총 ${total}문제 중 ${score}문제를 맞혔습니다! (${finalScore}점)`;
+    document.getElementById('resultModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('resultModal').style.display = 'none';
+    currentIdx = 0;
+    score = 0;
+    loadQuiz();
+}
+</script>
+</body>
+</html>

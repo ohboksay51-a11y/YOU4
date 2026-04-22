@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전기 기초 마스터: 옴의 법칙</title>
+    <style>
+
+                /* 메인으로 가기 버튼 스타일 */
+.btn-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    color: #3498db;
+    border: 2px solid #3498db;
+    padding: 10px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* 마우스 커서 올렸을 때(Hover) 이펙트 */
+.btn-home:hover {
+    background-color: #3498db;
+    color: white;
+    transform: scale(1.05) translateX(5px);
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 768px) {
+    .btn-home {
+        top: 10px;
+        left: 10px;
+        padding: 8px 14px;
+        font-size: 0.8em;
+    }
+}
+        /* [레이아웃 통일] 공통 스타일 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; background-color: #f0f2f5; padding: 40px 20px; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 15px; margin-bottom: 30px; font-size: 2.2em; text-align: center; }
+        h2 { color: #34495e; margin-bottom: 20px; font-size: 1.5em; display: flex; align-items: center; }
+        .section { margin-bottom: 50px; padding: 25px; border: 1px solid #eef2f7; border-radius: 15px; background-color: #fcfcfc; }
+        
+        /* 시각화 영역 통일: 높이 350px로 고정 */
+        .visualizer-container { text-align: center; background: #2c3e50; color: white; padding: 30px; border-radius: 12px; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        .resistance-bar { width: 80%; height: 40px; background: #34495e; border: 3px solid #7f8c8d; border-radius: 20px; position: relative; overflow: hidden; }
+        .current-particle { position: absolute; width: 12px; height: 12px; background: #f1c40f; border-radius: 50%; box-shadow: 0 0 10px #f1c40f; top: 12px; }
+        
+        /* 컨트롤러 및 결과 텍스트 */
+        .controls { margin-bottom: 25px; display: flex; justify-content: center; gap: 40px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .result-text { text-align: center; margin-top: 20px; font-weight: bold; color: #2980b9; font-size: 1.3em; height: 1.5em; }
+
+        /* 퀴즈 시스템 통일 */
+        #quiz-container { background: #fff; padding: 10px; }
+        .progress { margin-bottom: 15px; font-weight: bold; color: #3498db; font-size: 1.1em; }
+        .quiz-question { font-size: 1.3em; font-weight: bold; margin-bottom: 20px; color: #2c3e50; line-height: 1.4; }
+        .quiz-option { display: block; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 1.1em; }
+        .quiz-option:hover { border-color: #3498db; background: #eef7fe; }
+        .quiz-option.correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        .quiz-option.wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        .explanation { margin-top: 20px; padding: 20px; background: #e8f4fd; border-left: 5px solid #3498db; border-radius: 5px; display: none; }
+        .btn-next { margin-top: 20px; padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; display: none; }
+        .btn-next:hover { background: #2980b9; }
+
+        .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.5s ease-out;
+}
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.rank-badge {
+    font-size: 3em;
+    margin: 20px 0;
+    display: block;
+}
+.rank-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 10px;
+}
+.score-text {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 25px;
+}
+.btn-restart {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-restart:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    </style>
+</head>
+<body>
+
+        <a href="main.html" class="btn-home">
+    <span>🏠</span> 메인으로 돌아가기
+</a>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div id="rankBadge" class="rank-badge">⚡</div>
+        <div id="rankName" class="rank-text">등급</div>
+        <div id="finalScore" class="score-text">0점</div>
+        <button class="btn-restart" onclick="closeModal()">다시 도전하기</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1>⚡ 옴의 법칙과 회로의 이해</h1>
+
+    <div class="section">
+        <h2>1. 전류 흐름 시각화</h2>
+        <div class="controls">
+            <div>
+                <label>전압(V): </label>
+                <input type="range" id="voltsRange" min="1" max="220" value="110" oninput="updateCircuit()" style="width:150px; vertical-align: middle;">
+                <span id="vValue" style="font-weight: bold; color: #e74c3c; min-width: 35px; display: inline-block;">110</span>V
+            </div>
+            <div>
+                <label>저항(R): </label>
+                <input type="range" id="ohmsRange" min="1" max="100" value="10" oninput="updateCircuit()" style="width:150px; vertical-align: middle;">
+                <span id="rValue" style="font-weight: bold; color: #e67e22; min-width: 35px; display: inline-block;">10</span>Ω
+            </div>
+        </div>
+        
+        <div class="visualizer-container">
+            <div class="resistance-bar" id="barContainer"></div>
+        </div>
+        <p id="calcResult" class="result-text">전류(I) = 11.00 [A]</p>
+    </div>
+
+    <div class="section">
+        <h2>2. 실전 응용 퀴즈</h2>
+        <div id="quiz-container">
+            <div class="progress" id="progress">문제 1 / 10</div>
+            <div class="quiz-question" id="question">질문 로딩 중...</div>
+            <div id="options"></div>
+            <div class="explanation" id="explanation">
+                <strong>💡 해설:</strong> <span id="exp-text"></span>
+            </div>
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()">다음 문제로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateCircuit() {
+        const v = parseFloat(document.getElementById('voltsRange').value);
+        const r = parseFloat(document.getElementById('ohmsRange').value);
+        const i = v / r;
+        const container = document.getElementById('barContainer');
+        const width = container.offsetWidth;
+
+        document.getElementById('vValue').innerText = v;
+        document.getElementById('rValue').innerText = r;
+        document.getElementById('calcResult').innerText = `계산 결과: 전류(I) = ${i.toFixed(2)} [A]`;
+
+        container.innerHTML = '';
+        const particleCount = Math.min(Math.max(Math.floor(i * 1.5), 3), 40);
+        const speed = Math.max(0.5, i / 5); 
+
+        for (let j = 0; j < particleCount; j++) {
+            const dot = document.createElement('div');
+            dot.className = 'current-particle';
+            container.appendChild(dot);
+            animateDot(dot, j * (width / particleCount), speed, width);
+        }
+    }
+
+    function animateDot(el, startPos, speed, maxWidth) {
+        let pos = startPos;
+        function step() {
+            pos += speed;
+            if (pos > maxWidth) pos = 0;
+            el.style.left = pos + 'px';
+            requestAnimationFrame(step);
+        }
+        step();
+    }
+
+    const quizData = [
+        { q: "전기 회로에서 전류의 흐름을 방해하는 요소는?", a: ["전압", "저항", "전력", "정전용량"], cor: 1, exp: "저항은 전류의 흐름을 억제하는 성질을 가지며 단위는 옴(Ω)을 사용합니다." },
+        { q: "옴의 법칙 수식 중 전류(I)를 구하는 방법은?", a: ["I = V / R", "I = V * R", "I = R / V", "I = V + R"], cor: 0, exp: "전류는 전압에 비례하고 저항에 반비례하므로 I = V / R 입니다." },
+        { q: "저항이 일정할 때 전압을 2배로 높이면 전류는 어떻게 되는가?", a: ["1/2배가 된다", "변함 없다", "2배가 된다", "4배가 된다"], cor: 2, exp: "전압과 전류는 비례 관계이므로 전압이 커지면 전류도 커집니다." },
+        { q: "회로에 100V 전압을 가했을 때 5A가 흐른다면 저항은?", a: ["500Ω", "20Ω", "0.05Ω", "50Ω"], cor: 1, exp: "R = V / I 공식에 의해 100 / 5 = 20Ω 입니다." },
+        { q: "다음 중 전도율(전류가 잘 흐르는 정도)의 단위는?", a: ["Ω (옴)", "V (볼트)", "℧ (모)", "A (암페어)"], cor: 2, exp: "전도율은 저항의 역수로, 단위는 ℧(모) 또는 S(지멘스)를 사용합니다." },
+        { q: "전선이 굵어질수록 저항값은 어떻게 변하는가?", a: ["커진다", "작아진다", "일정하다", "전압에 따라 다르다"], cor: 1, exp: "저항은 통로의 넓이(단면적)에 반비례합니다. 통로가 넓어지면 흐름이 쉬워져 저항은 작아집니다." },
+        { q: "절연체(부도체)의 특징으로 옳은 것은?", a: ["자유전자가 매우 많다", "전기가 매우 잘 통한다", "저항이 매우 크다", "열전도율이 매우 높다"], cor: 2, exp: "절연체는 고유저항이 매우 커서 전류가 거의 흐르지 못하는 물질입니다." },
+        { q: "1[MΩ](메가옴)은 몇 [Ω]인가?", a: ["1,000Ω", "10,000Ω", "100,000Ω", "1,000,000Ω"], cor: 3, exp: "M(메가)는 10의 6승, 즉 1,000,000을 의미합니다." },
+        { q: "회로의 두 지점 사이의 전위차를 나타내는 용어는?", a: ["전류", "전압", "저항", "전력량"], cor: 1, exp: "전압은 전기적인 위치 에너지의 차이인 전위차를 의미합니다." },
+        { q: "전기가 흐를 수 있는 통로가 하나로 이어진 연결 방식은?", a: ["병렬 연결", "직렬 연결", "복합 연결", "단락 연결"], cor: 1, exp: "한 줄로 길게 이어진 방식을 직렬 연결이라고 하며, 모든 지점에서 전류가 일정합니다." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuiz() {
+        const qData = quizData[currentIdx];
+        document.getElementById('progress').innerText = `문제 ${currentIdx + 1} / 10`;
+        document.getElementById('question').innerText = qData.q;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        qData.a.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.innerText = `${index + 1}. ${opt}`;
+            div.onclick = () => checkQuiz(index, div);
+            optionsDiv.appendChild(div);
+        });
+        document.getElementById('explanation').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'none';
+    }
+
+    function checkQuiz(choice, element) {
+        const correctIdx = quizData[currentIdx].cor;
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach(opt => opt.onclick = null);
+        if (choice === correctIdx) { element.classList.add('correct'); score++; }
+        else { element.classList.add('wrong'); options[correctIdx].classList.add('correct'); }
+        document.getElementById('exp-text').innerText = quizData[currentIdx].exp;
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'inline-block';
+        if(currentIdx === 9) document.getElementById('btn-next').innerText = "결과 보기";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < 10) loadQuiz();
+        else { alert(`테스트 종료! 점수: ${score * 10}점`); currentIdx = 0; score = 0; loadQuiz(); }
+    }
+
+    window.onload = () => { updateCircuit(); loadQuiz(); };
+    window.onresize = updateCircuit;
+
+    function nextQuestion() {
+    currentIdx++;
+    if (currentIdx < quizData.length) {
+        loadQuiz();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    const total = quizData.length;
+    const finalScore = score * (100 / total);
+    let rank = "";
+    let emoji = "";
+
+    // 랭크 판정 로직
+    if (score === total) {
+        rank = "전기 마스터 (S급)";
+        emoji = "👑";
+    } else if (score >= total * 0.8) {
+        rank = "베테랑 기술자 (A급)";
+        emoji = "🔧";
+    } else if (score >= total * 0.6) {
+        rank = "숙련된 조수 (B급)";
+        emoji = "💡";
+    } else {
+        rank = "전기 초보 (C급)";
+        emoji = "👶";
+    }
+
+    document.getElementById('rankBadge').innerText = emoji;
+    document.getElementById('rankName').innerText = rank;
+    document.getElementById('finalScore').innerText = `총 ${total}문제 중 ${score}문제를 맞혔습니다! (${finalScore}점)`;
+    document.getElementById('resultModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('resultModal').style.display = 'none';
+    currentIdx = 0;
+    score = 0;
+    loadQuiz();
+}
+</script>
+</body>
+</html>

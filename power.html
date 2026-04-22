@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전기 기초 마스터: 전력과 에너지</title>
+    <style>
+        /* [레이아웃 통일] 공통 스타일 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; background-color: #f0f2f5; padding: 40px 20px; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 15px; margin-bottom: 30px; font-size: 2.2em; text-align: center; }
+        h2 { color: #34495e; margin-bottom: 20px; font-size: 1.5em; display: flex; align-items: center; }
+        .section { margin-bottom: 50px; padding: 25px; border: 1px solid #eef2f7; border-radius: 15px; background-color: #fcfcfc; }
+        
+        /* 시각화 영역 통일: 높이 350px로 고정 */
+        .visualizer-container { text-align: center; background: #2c3e50; color: white; padding: 30px; border-radius: 12px; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        
+        /* 전구 시각화 특화 스타일 */
+        .bulb-container { position: relative; width: 100px; height: 150px; }
+        .bulb { font-size: 80px; filter: grayscale(1); transition: all 0.2s; position: relative; z-index: 10; }
+        .glow { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; background: #f1c40f; border-radius: 50%; z-index: 5; transition: all 0.2s; opacity: 0; }
+
+        /* 컨트롤러 및 결과 텍스트 */
+        .controls { margin-bottom: 25px; display: flex; justify-content: center; gap: 40px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .result-text { text-align: center; margin-top: 20px; font-weight: bold; color: #2980b9; font-size: 1.3em; height: 1.5em; }
+
+        /* 퀴즈 시스템 통일 */
+        #quiz-container { background: #fff; padding: 10px; }
+        .progress { margin-bottom: 15px; font-weight: bold; color: #3498db; font-size: 1.1em; }
+        .quiz-question { font-size: 1.3em; font-weight: bold; margin-bottom: 20px; color: #2c3e50; line-height: 1.4; }
+        .quiz-option { display: block; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 1.1em; }
+        .quiz-option:hover { border-color: #3498db; background: #eef7fe; }
+        .quiz-option.correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        .quiz-option.wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        .explanation { margin-top: 20px; padding: 20px; background: #e8f4fd; border-left: 5px solid #3498db; border-radius: 5px; display: none; }
+        .btn-next { margin-top: 20px; padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; display: none; }
+        .btn-next:hover { background: #2980b9; }
+
+        /* 메인으로 가기 버튼 */
+        .btn-home { position: fixed; top: 20px; left: 20px; background-color: #ffffff; color: #3498db; border: 2px solid #3498db; padding: 10px 18px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 0.9em; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 1000; }
+        .btn-home:hover { background-color: #3498db; color: white; transform: scale(1.05); }
+
+        /* 결과 모달 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideUp 0.5s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .rank-badge { font-size: 3em; margin: 20px 0; display: block; }
+        .rank-text { font-size: 1.5em; font-weight: bold; color: #3498db; margin-bottom: 10px; }
+        .score-text { font-size: 1.1em; color: #666; margin-bottom: 25px; }
+        .btn-restart { background: #3498db; color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+
+<a href="main.html" class="btn-home"><span>🏠</span> 메인으로 돌아가기</a>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div id="rankBadge" class="rank-badge">⚡</div>
+        <div id="rankName" class="rank-text">등급</div>
+        <div id="finalScore" class="score-text">0점</div>
+        <button class="btn-restart" onclick="closeModal()">다시 도전하기</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1>💡 전력(Power)과 에너지의 이해</h1>
+
+    <div class="section">
+        <h2>1. 전력 소비 시각화 (P = V × I)</h2>
+        <div class="controls">
+            <div>
+                <label>전압(V): </label>
+                <input type="range" id="vRange" min="0" max="220" value="110" oninput="updatePower()" style="width:150px; vertical-align: middle;">
+                <span id="vDisp" style="font-weight: bold; color: #e74c3c;">110</span>V
+            </div>
+            <div>
+                <label>전류(I): </label>
+                <input type="range" id="iRange" min="0" max="10" step="0.5" value="5" oninput="updatePower()" style="width:150px; vertical-align: middle;">
+                <span id="iDisp" style="font-weight: bold; color: #3498db;">5.0</span>A
+            </div>
+        </div>
+        
+        <div class="visualizer-container">
+            <div class="bulb-container">
+                <div id="bulb" class="bulb">💡</div>
+                <div id="glow" class="glow"></div>
+            </div>
+            <p style="margin-top:20px; color:#bdc3c7;">전력이 높을수록 전구가 밝게 빛납니다!</p>
+        </div>
+        <p id="powerResult" class="result-text">소비전력(P) = 550.00 [W]</p>
+    </div>
+
+    <div class="section">
+        <h2>2. 전력 및 에너지 퀴즈</h2>
+        <div id="quiz-container">
+            <div class="progress" id="progress">문제 1 / 10</div>
+            <div class="quiz-question" id="question">질문 로딩 중...</div>
+            <div id="options"></div>
+            <div class="explanation" id="explanation">
+                <strong>💡 해설:</strong> <span id="exp-text"></span>
+            </div>
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()">다음 문제로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updatePower() {
+        const v = parseFloat(document.getElementById('vRange').value);
+        const i = parseFloat(document.getElementById('iRange').value);
+        const p = v * i;
+
+        document.getElementById('vDisp').innerText = v;
+        document.getElementById('iDisp').innerText = i.toFixed(1);
+        document.getElementById('powerResult').innerText = `소비전력(P) = ${p.toFixed(2)} [W]`;
+
+        // 시각화 효과
+        const bulb = document.getElementById('bulb');
+        const glow = document.getElementById('glow');
+        const intensity = Math.min(p / 1500, 1); // 최대 2200W 기준 비율
+
+        if (p > 0) {
+            bulb.style.filter = `grayscale(0) brightness(${1 + intensity})`;
+            glow.style.opacity = intensity;
+            glow.style.boxShadow = `0 0 ${intensity * 100}px ${intensity * 50}px #f1c40f`;
+        } else {
+            bulb.style.filter = `grayscale(1)`;
+            glow.style.opacity = 0;
+        }
+    }
+
+    const quizData = [
+        { q: "전기가 단위 시간(1초) 동안 하는 일의 양을 무엇이라 하는가?", a: ["전압", "전력", "전력량", "전류"], cor: 1, exp: "전력(Power)은 1초 동안 전기 에너지가 일을 하는 능력을 말하며 단위는 [W](와트)를 사용합니다." },
+        { q: "전력(P)을 구하는 가장 기본적인 공식은?", a: ["P = V / I", "P = V × I", "P = I / V", "P = V + I"], cor: 1, exp: "전력은 전압과 전류의 곱으로 나타냅니다 (P = VI)." },
+        { q: "1[kW]는 몇 [W]인가?", a: ["100W", "500W", "1,000W", "10,000W"], cor: 2, exp: "k(킬로)는 10의 3승인 1,000을 의미합니다." },
+        { q: "어느 가전제품에 200V를 가해 2A가 흘렀다면 전력은?", a: ["100W", "202W", "400W", "0.01W"], cor: 2, exp: "P = V × I 이므로 200 × 2 = 400[W]입니다." },
+        { q: "일정 시간 동안 사용한 전력의 전체 양을 무엇이라 하는가?", a: ["전력", "전압", "전력량", "기전력"], cor: 2, exp: "전력량은 전력에 시간을 곱한 값으로, 총 사용 에너지를 의미합니다." },
+        { q: "전력량의 단위로 주로 사용되는 것은?", a: ["[W]", "[V]", "[kWh]", "[A]"], cor: 2, exp: "전력량은 전력(kW)과 시간(h)의 곱인 kWh를 단위로 사용합니다." },
+        { q: "1[J](줄)의 에너지와 같은 단위는?", a: ["1 W·s", "1 W/s", "1 V·A", "1 Ω·m"], cor: 0, exp: "1줄은 1와트의 전력을 1초 동안 사용했을 때의 에너지와 같습니다." },
+        { q: "저항(R)에 흐르는 전류(I)를 이용한 전력 공식은?", a: ["P = I × R", "P = I² × R", "P = V² × R", "P = I / R"], cor: 1, exp: "V = IR을 P = VI에 대입하면 P = I²R 이라는 공식을 얻을 수 있습니다." },
+        { q: "전기에너지가 열에너지로 변할 때 발생하는 열을 무엇이라 하는가?", a: ["뉴턴열", "줄열(Joule heat)", "쿨롱열", "헤르츠열"], cor: 1, exp: "저항에 전류가 흐를 때 발생하는 열을 줄열이라고 합니다." },
+        { q: "전력계의 측정 원리와 관계가 깊은 것은?", a: ["전압과 저항의 곱", "전압과 전류의 곱", "시간과 전류의 곱", "저항과 시간의 곱"], cor: 1, exp: "전력계는 전압과 전류를 동시에 감지하여 그 곱인 전력을 측정합니다." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuiz() {
+        const qData = quizData[currentIdx];
+        document.getElementById('progress').innerText = `문제 ${currentIdx + 1} / 10`;
+        document.getElementById('question').innerText = qData.q;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        qData.a.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.innerText = `${index + 1}. ${opt}`;
+            div.onclick = () => checkQuiz(index, div);
+            optionsDiv.appendChild(div);
+        });
+        document.getElementById('explanation').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'none';
+    }
+
+    function checkQuiz(choice, element) {
+        const correctIdx = quizData[currentIdx].cor;
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach(opt => opt.onclick = null);
+        if (choice === correctIdx) { element.classList.add('correct'); score++; }
+        else { element.classList.add('wrong'); options[correctIdx].classList.add('correct'); }
+        document.getElementById('exp-text').innerText = quizData[currentIdx].exp;
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'inline-block';
+        if(currentIdx === 9) document.getElementById('btn-next').innerText = "결과 보기";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizData.length) loadQuiz();
+        else showResult();
+    }
+
+    function showResult() {
+        const total = quizData.length;
+        const finalScore = score * (100 / total);
+        let rank = score === total ? "전기 마스터 (S급)" : score >= 8 ? "베테랑 기술자 (A급)" : score >= 6 ? "숙련된 조수 (B급)" : "전기 초보 (C급)";
+        let emoji = score === total ? "👑" : score >= 8 ? "🔧" : score >= 6 ? "💡" : "👶";
+
+        document.getElementById('rankBadge').innerText = emoji;
+        document.getElementById('rankName').innerText = rank;
+        document.getElementById('finalScore').innerText = `총 ${total}문제 중 ${score}문제를 맞혔습니다! (${finalScore}점)`;
+        document.getElementById('resultModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+        currentIdx = 0; score = 0; loadQuiz();
+    }
+
+    window.onload = () => { updatePower(); loadQuiz(); };
+</script>
+</body>
+</html>

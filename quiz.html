@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전기 기초 마스터: 보드게임</title>
+    <style>
+
+                        /* 메인으로 가기 버튼 스타일 */
+.btn-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    color: #3498db;
+    border: 2px solid #3498db;
+    padding: 10px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* 마우스 커서 올렸을 때(Hover) 이펙트 */
+.btn-home:hover {
+    background-color: #3498db;
+    color: white;
+    transform: scale(1.05) translateX(5px);
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+        /* [main.html 디자인 시스템 적용] */
+        :root {
+            --poly: #e74c3c;    /* P1 컬러 */
+            --techi: #3498db;   /* P2 컬러 */
+            --kkadug: #2ecc71;  /* P3 컬러 */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+        }
+
+        body { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            line-height: 1.6; 
+            background-color: var(--bg-color); 
+            padding: 20px; 
+            color: #333; 
+            margin: 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container { 
+            max-width: 800px; 
+            width: 100%;
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        }
+
+        h1 { 
+            color: #2c3e50; 
+            border-bottom: 3px solid #3498db; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+            font-size: 1.8em; 
+            text-align: center; 
+        }
+
+        /* 상단 스코어보드 디자인 */
+        #stat-header {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            padding: 15px;
+            border-radius: 15px;
+            background: #fff;
+            border: 2px solid #eee;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card.active-0 { border-color: var(--poly); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2); transform: translateY(-5px); }
+        .stat-card.active-1 { border-color: var(--techi); box-shadow: 0 5px 15px rgba(52, 152, 219, 0.2); transform: translateY(-5px); }
+        .stat-card.active-2 { border-color: var(--kkadug); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.2); transform: translateY(-5px); }
+
+        .p-name { font-weight: bold; font-size: 0.9em; margin-bottom: 5px; }
+        .p-money { font-size: 1.1em; font-weight: 800; color: #2c3e50; }
+
+        /* 보드 레이아웃 */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            width: 100%;
+            aspect-ratio: 1/1;
+            position: relative;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 15px;
+        }
+        .tile {
+            background: white;
+            border: 1px solid #eef2f7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            position: relative;
+        }
+        /* 과목별 포인트 컬러 */
+        .tile.kec { border-bottom: 4px solid #ff7675; }
+        .tile.control { border-bottom: 4px solid #fdcb6e; }
+        .tile.machine { border-bottom: 4px solid #00cec9; }
+        .tile.circuit { border-bottom: 4px solid #a29bfe; }
+        .tile.start { background: #2c3e50; color: white; }
+
+        /* 중앙 주사위 영역 */
+        .tile-center { 
+            grid-column: 2 / 5; grid-row: 2 / 5; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #fff; border-radius: 20px; border: 1px dashed #ccc;
+        }
+        #dice-char {
+            width: 80px; height: 80px; background: #3498db; color: white; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        #dice-char:hover { transform: scale(1.05); background: #2980b9; }
+        #turn-info { margin-top: 15px; font-weight: bold; font-size: 1em; }
+
+        /* 플레이어 말(Token) */
+        .token {
+            width: 22px; height: 22px; border-radius: 50%; position: absolute;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+            z-index: 50; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .tk-0 { background: var(--poly); transform: translate(-8px, -8px); }
+        .tk-1 { background: var(--techi); transform: translate(8px, -8px); }
+        .tk-2 { background: var(--kkadug); transform: translate(0px, 8px); }
+
+        /* 퀴즈 모달 (main.html의 모달 스타일 계승) */
+        #quiz-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        #quiz-box {
+            background: white; width: 90%; max-width: 450px; padding: 30px;
+            border-radius: 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .opt-btn {
+            width: 100%; background: #f8f9fa; border: 1px solid #ddd;
+            color: #333; padding: 12px; margin-top: 10px; border-radius: 10px; cursor: pointer;
+            text-align: left; font-size: 1em; transition: 0.2s;
+        }
+        .opt-btn:hover { background: #3498db; color: white; border-color: #3498db; }
+
+        #final-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 2000; display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    
+     <a href="main.html" class="btn-home">
+    <span>🏠</span> 메인으로 돌아가기
+</a>
+
+<div class="container">
+    <h1>⚡ 퀴즈-다이스 대결 ⚡</h1>
+
+    <div id="stat-header">
+        <div id="card-0" class="stat-card active-0">
+            <div class="p-name" style="color:var(--poly)">POLY 🤖</div>
+            <div class="p-money">₩ <span id="s0">0</span></div>
+        </div>
+        <div id="card-1" class="stat-card">
+            <div class="p-name" style="color:var(--techi)">TECHI 🚀</div>
+            <div class="p-money">₩ <span id="s1">0</span></div>
+        </div>
+        <div id="card-2" class="stat-card">
+            <div class="p-name" style="color:var(--kkadug)">KKA-DUG 🐥</div>
+            <div class="p-money">₩ <span id="s2">0</span></div>
+        </div>
+    </div>
+
+    <div id="board">
+        <div class="tile-center">
+            <div id="dice-char" onclick="rollDice()">🎲</div>
+            <div id="turn-info" style="color: var(--poly);">POLY'S TURN</div>
+        </div>
+    </div>
+</div>
+
+<div id="quiz-modal">
+    <div id="quiz-box">
+        <div id="q-tag" style="padding: 4px 12px; border-radius: 8px; display: inline-block; margin-bottom: 15px; color: white; font-weight: bold; font-size: 0.8rem;"></div>
+        <div id="q-text" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: #2c3e50;"></div>
+        <div id="q-options"></div>
+    </div>
+</div>
+
+<div id="final-screen">
+    <h2 style="color: #2c3e50; font-size: 2em;">🏆 우승자 탄생! 🏆</h2>
+    <div id="winner-name" style="font-size: 3em; font-weight: 800; margin: 20px 0;"></div>
+    <button onclick="location.reload()" style="background:#3498db; color:white; border:none; padding:15px 40px; border-radius:10px; font-weight:bold; cursor:pointer;">다시 플레이하기</button>
+</div>
+
+<script>
+    // 문제 데이터 (기존 데이터 유지)
+    const quizData = {
+        control: [
+            { q: "제어계의 안정도 판별법 중 루드-후르비츠 판별법은 무엇을 이용하는가?", a: ["특성방정식의 계수", "보드 선도", "나이퀴스트 선도", "근궤적"], c: 0 },
+            { q: "전달함수 G(s) = 1/s 는 어떤 요소인가?", a: ["비례", "미분", "적분", "1차지연"], c: 2 },
+            { q: "S평면의 좌반평면에 근이 모두 존재하면 계통은?", a: ["안정", "불안정", "임계안정", "알 수 없음"], c: 0 }
+        ],
+        kec: [
+            { q: "KEC 규정상 저압 DC 범위는?", a: ["1000V 이하", "1500V 이하", "2000V 이하", "750V 이하"], c: 1 },
+            { q: "보호도체(PE)의 식별 색상은?", a: ["갈색", "흑색", "회색", "녹색-노란색"], c: 3 },
+            { q: "가공전선의 지지물에 시설하는 지선의 안전율은?", a: ["1.5", "2.0", "2.5", "3.0"], c: 2 }
+        ],
+        machine: [
+            { q: "변압기의 원리는?", a: ["플레밍의 법칙", "전자유도 작용", "렌츠의 법칙", "홀 효과"], c: 1 },
+            { q: "유도전동기에서 슬립(s)이 1이면?", a: ["정지 상태", "동기 속도", "역전 상태", "최대 출력"], c: 0 },
+            { q: "직류기의 3요소가 아닌 것은?", a: ["계자", "전기자", "정류자", "슬립링"], c: 3 }
+        ],
+        circuit: [
+            { q: "회로에서 임피던스(Z)의 단위는?", a: ["V", "A", "Ω", "W"], c: 2 },
+            { q: "RLC 직렬회로에서 공진 시 임피던스는?", a: ["최대", "최소", "무한대", "0"], c: 1 },
+            { q: "키르히호프의 제2법칙은?", a: ["전류 법칙", "전압 법칙", "전력 법칙", "저항 법칙"], c: 1 }
+        ]
+    };
+
+    const tilesInfo = [
+        { name: "START", type: "start" }, { name: "전기기기", type: "machine" }, { name: "전기회로", type: "circuit" }, { name: "KEC", type: "kec" },
+        { name: "제어공학", type: "control" }, { name: "전기기기", type: "machine" }, { name: "전기회로", type: "circuit" }, { name: "LUCKY", type: "control" },
+        { name: "KEC", type: "kec" }, { name: "전기기기", type: "machine" }, { name: "전기회로", type: "circuit" }, { name: "제어공학", type: "control" },
+        { name: "KEC", type: "kec" }, { name: "전기기기", type: "machine" }, { name: "전기회로", type: "circuit" }, { name: "제어공학", type: "control" }
+    ];
+
+    const gridPath = [0, 1, 2, 3, 4, 9, 14, 19, 24, 23, 22, 21, 20, 15, 10, 5];
+    const tileMap = [];
+    const boardEl = document.getElementById('board');
+
+    gridPath.forEach((gridIdx, mapIdx) => {
+        const t = tilesInfo[mapIdx];
+        const div = document.createElement('div');
+        div.className = `tile ${t.type}`;
+        div.style.gridColumn = (gridIdx % 5) + 1;
+        div.style.gridRow = Math.floor(gridIdx / 5) + 1;
+        div.innerHTML = `<span>${t.name}</span>`;
+        boardEl.appendChild(div);
+        tileMap[mapIdx] = div;
+    });
+
+    let pPos = [0, 0, 0];
+    let pScores = [0, 0, 0];
+    let turn = 0;
+    let isMoving = false;
+    const names = ["POLY", "TECHI", "KKA-DUG"];
+    const colors = ["var(--poly)", "var(--techi)", "var(--kkadug)"];
+
+    const tokens = names.map((n, i) => {
+        const tk = document.createElement('div');
+        tk.className = `token tk-${i}`;
+        tk.innerText = ["🤖", "🚀", "🐥"][i];
+        tileMap[0].appendChild(tk);
+        return tk;
+    });
+
+    function rollDice() {
+        if (isMoving) return;
+        isMoving = true;
+        const diceNum = Math.floor(Math.random() * 4) + 1;
+        const diceChar = document.getElementById('dice-char');
+        
+        let count = 0;
+        const anim = setInterval(() => {
+            diceChar.innerText = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"][Math.floor(Math.random()*6)];
+            if (count++ > 8) {
+                clearInterval(anim);
+                diceChar.innerText = ["", "⚀", "⚁", "⚂", "⚃"][diceNum];
+                movePlayer(diceNum);
+            }
+        }, 60);
+    }
+
+    function movePlayer(steps) {
+        let moved = 0;
+        const timer = setInterval(() => {
+            pPos[turn] = (pPos[turn] + 1) % 16;
+            tileMap[pPos[turn]].appendChild(tokens[turn]);
+            moved++;
+            if (moved >= steps) {
+                clearInterval(timer);
+                setTimeout(openQuiz, 400);
+            }
+        }, 250);
+    }
+
+    function openQuiz() {
+        const currentTile = tilesInfo[pPos[turn]];
+        if (currentTile.type === 'start') { nextTurn(); return; }
+
+        const cat = currentTile.type;
+        const questions = quizData[cat] || quizData['circuit'];
+        const q = questions[Math.floor(Math.random() * questions.length)];
+
+        const modal = document.getElementById('quiz-modal');
+        const tag = document.getElementById('q-tag');
+        tag.innerText = currentTile.name;
+        tag.style.background = getCategoryColor(cat);
+        document.getElementById('q-text').innerText = q.q;
+        
+        const opts = document.getElementById('q-options');
+        opts.innerHTML = '';
+        q.a.forEach((ans, i) => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn';
+            b.innerText = `${i+1}. ${ans}`;
+            b.onclick = () => {
+                if (i === q.c) {
+                    pScores[turn] += 500000;
+                    document.getElementById(`s${turn}`).innerText = pScores[turn].toLocaleString();
+                    alert("정답입니다! +500,000 ₩");
+                } else {
+                    alert("오답입니다!");
+                }
+                modal.style.display = 'none';
+                if (pScores[turn] >= 3000000) endGame();
+                else nextTurn();
+            };
+            opts.appendChild(b);
+        });
+        modal.style.display = 'flex';
+    }
+
+    function getCategoryColor(cat) {
+        const colors = { machine: '#00cec9', circuit: '#a29bfe', kec: '#ff7675', control: '#fdcb6e' };
+        return colors[cat] || '#3498db';
+    }
+
+    function nextTurn() {
+        document.getElementById(`card-${turn}`).classList.remove(`active-${turn}`);
+        turn = (turn + 1) % 3;
+        document.getElementById(`card-${turn}`).classList.add(`active-${turn}`);
+        const info = document.getElementById('turn-info');
+        info.innerText = `${names[turn]}'S TURN`;
+        info.style.color = colors[turn];
+        isMoving = false;
+    }
+
+    function endGame() {
+        document.getElementById('final-screen').style.display = 'flex';
+        const winEl = document.getElementById('winner-name');
+        winEl.innerText = names[turn];
+        winEl.style.color = colors[turn];
+    }
+</script>
+</body>
+</html>

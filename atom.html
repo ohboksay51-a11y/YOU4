@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전기 기초 마스터: 원자 구조</title>
+    <style>
+        /* [레이아웃 통일] 공통 스타일 */
+        body { font-family: 'Pretendard', -apple-system, sans-serif; line-height: 1.6; background-color: #f0f2f5; padding: 40px 20px; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 15px; margin-bottom: 30px; font-size: 2.2em; text-align: center; }
+        h2 { color: #34495e; margin-bottom: 20px; font-size: 1.5em; display: flex; align-items: center; }
+        .section { margin-bottom: 50px; padding: 25px; border: 1px solid #eef2f7; border-radius: 15px; background-color: #fcfcfc; }
+        
+        /* 시각화 영역 통일: 높이 350px로 고정 */
+        .visualizer-container { text-align: center; background: #2c3e50; color: white; padding: 30px; border-radius: 12px; height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); }
+        .atom-nucleus { width: 70px; height: 70px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; position: absolute; z-index: 10; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.3em; box-shadow: 0 0 20px rgba(231, 76, 60, 0.6); border: 2px solid rgba(255,255,255,0.2); }
+        .electron-orbit { position: absolute; border: 1.5px dashed rgba(255,255,255,0.25); border-radius: 50%; width: 240px; height: 240px; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
+        .electron { position: absolute; width: 16px; height: 16px; background: #3498db; border-radius: 50%; z-index: 15; box-shadow: 0 0 10px rgba(52, 152, 219, 0.8); border: 1px solid white; }
+        
+        /* 컨트롤러 및 결과 텍스트 */
+        .controls { margin-bottom: 25px; display: flex; justify-content: center; gap: 40px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        .result-text { text-align: center; margin-top: 20px; font-weight: bold; color: #2980b9; font-size: 1.3em; height: 1.5em; }
+
+        /* 퀴즈 시스템 통일 */
+        #quiz-container { background: #fff; padding: 10px; }
+        .progress { margin-bottom: 15px; font-weight: bold; color: #3498db; font-size: 1.1em; }
+        .quiz-question { font-size: 1.3em; font-weight: bold; margin-bottom: 20px; color: #2c3e50; line-height: 1.4; }
+        .quiz-option { display: block; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; cursor: pointer; transition: 0.2s; font-size: 1.1em; }
+        .quiz-option:hover { border-color: #3498db; background: #eef7fe; }
+        .quiz-option.correct { background: #2ecc71 !important; color: white; border-color: #27ae60; }
+        .quiz-option.wrong { background: #e74c3c !important; color: white; border-color: #c0392b; }
+        .explanation { margin-top: 20px; padding: 20px; background: #e8f4fd; border-left: 5px solid #3498db; border-radius: 5px; display: none; }
+        .btn-next { margin-top: 20px; padding: 12px 30px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; display: none; }
+        .btn-next:hover { background: #2980b9; }
+
+        /**/
+
+        /* 메인으로 가기 버튼 스타일 */
+.btn-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffffff;
+    color: #3498db;
+    border: 2px solid #3498db;
+    padding: 10px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+/* 마우스 커서 올렸을 때(Hover) 이펙트 */
+.btn-home:hover {
+    background-color: #3498db;
+    color: white;
+    transform: scale(1.05) translateX(5px);
+    box-shadow: 0 6px 15px rgba(52, 152, 219, 0.3);
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 768px) {
+    .btn-home {
+        top: 10px;
+        left: 10px;
+        padding: 8px 14px;
+        font-size: 0.8em;
+    }
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: slideUp 0.5s ease-out;
+}
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.rank-badge {
+    font-size: 3em;
+    margin: 20px 0;
+    display: block;
+}
+.rank-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 10px;
+}
+.score-text {
+    font-size: 1.1em;
+    color: #666;
+    margin-bottom: 25px;
+}
+.btn-restart {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-restart:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+
+    <a href="main.html" class="btn-home">
+    <span>🏠</span> 메인으로 돌아가기
+</a>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <div id="rankBadge" class="rank-badge">⚡</div>
+        <div id="rankName" class="rank-text">등급</div>
+        <div id="finalScore" class="score-text">0점</div>
+        <button class="btn-restart" onclick="closeModal()">다시 도전하기</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1>⚛️ 원자 구조와 전하의 이해</h1>
+
+    <div class="section">
+        <h2>1. 원자 중성 시각화 계산기</h2>
+        <div class="controls">
+            <div>
+                <label>양성자(Proton) 수: </label>
+                <input type="range" id="protonRange" min="1" max="20" value="10" oninput="updateAtomFromRange(this.value)" style="width:200px; vertical-align: middle;">
+                <span id="rangeValue" style="font-weight: bold; font-size: 1.2em; margin-left: 10px; color: #e74c3c;">10</span>
+            </div>
+        </div>
+        
+        <div class="visualizer-container" id="atomDisplay">
+            <div class="electron-orbit"></div>
+            <div class="atom-nucleus" id="nucleus">+10</div>
+        </div>
+        <p id="calcResult" class="result-text">(+)전하 10 + (-)전하 10 = 총 전하 0 (중성)</p>
+    </div>
+
+    <div class="section">
+        <h2>2. 원자 및 전하 퀴즈</h2>
+        <div id="quiz-container">
+            <div class="progress" id="progress">문제 1 / 10</div>
+            <div class="quiz-question" id="question">질문 로딩 중...</div>
+            <div id="options"></div>
+            <div class="explanation" id="explanation">
+                <strong>💡 해설:</strong> <span id="exp-text"></span>
+            </div>
+            <button class="btn-next" id="btn-next" onclick="nextQuestion()">다음 문제로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateAtomFromRange(val) {
+        document.getElementById('rangeValue').innerText = val;
+        updateAtom(parseInt(val));
+    }
+
+    function updateAtom(count) {
+        const nucleus = document.getElementById('nucleus');
+        const display = document.getElementById('atomDisplay');
+        const result = document.getElementById('calcResult');
+        
+        document.querySelectorAll('.electron').forEach(el => el.remove());
+        nucleus.innerText = '+' + count;
+
+        const orbitRadius = 120;
+        const centerX = display.offsetWidth / 2;
+        const centerY = display.offsetHeight / 2;
+
+        for (let i = 0; i < count; i++) {
+            const electron = document.createElement('div');
+            electron.className = 'electron';
+            const angle = (i / count) * 2 * Math.PI;
+            const x = centerX + Math.cos(angle) * orbitRadius - 8;
+            const y = centerY + Math.sin(angle) * orbitRadius - 8;
+            electron.style.left = x + 'px';
+            electron.style.top = y + 'px';
+            display.appendChild(electron);
+        }
+        result.innerText = `(+)전하 ${count} + (-)전하 ${count} = 총 전하 0 (중성 상태)`;
+    }
+
+    const quizData = [
+        { q: "원자가 정상 상태에서 전기적으로 중성인 이유는?", a: ["양성자 수와 전자의 수가 같아서", "중성자 수와 전자의 수가 같아서", "양성자와 전자의 극성이 같아서", "핵력이 전하를 소멸시켜서"], cor: 0, exp: "정상 상태의 원자는 (+) 성질을 가진 양성자 수와 (-) 성질을 가진 전자의 수가 정확히 일치하여 전하량이 0이 됩니다." },
+        { q: "전자의 전기량(전하량)은 약 얼마인가?", a: ["1.602 × 10⁻¹⁹ [C]", "6.25 × 10¹⁸ [C]", "9.11 × 10⁻³¹ [C]", "1.67 × 10⁻²⁷ [C]"], cor: 0, exp: "전자 1개는 약 -1.602 × 10⁻¹⁹ 쿨롱[C]의 아주 작은 전기량을 가지고 있습니다." },
+        { q: "다음 중 전하의 성질에 대한 설명으로 틀린 것은?", a: ["같은 종류의 전하끼리는 흡인력이 작용한다.", "다른 종류의 전하끼리는 흡인력이 작용한다.", "전하는 가까운 곳으로 모이려는 성질이 있다.", "전하는 보존되며 갑자기 사라지지 않는다."], cor: 0, exp: "같은 종류(+, + 또는 -, -)끼리는 서로 밀어내는 반발력이 작용합니다." },
+        { q: "원자핵에서 멀리 떨어져 있어 쉽게 이탈하는 전자는?", a: ["자유 전자", "구속 전자", "가전자", "중성 전자"], cor: 0, exp: "원자핵의 구속력을 벗어나 자유롭게 이동하는 전자를 '자유 전자'라고 하며, 이것이 전류의 원인이 됩니다." },
+        { q: "1[C](쿨롱)의 전하량은 전자 약 몇 개의 모임인가?", a: ["6.24 × 10¹⁸ 개", "1.60 × 10¹⁹ 개", "8.85 × 10⁻¹² 개", "3 × 10⁸ 개"], cor: 0, exp: "1 / (1.602 × 10⁻¹⁹)을 계산하면 약 6.24 × 10¹⁸개가 나옵니다." },
+        { q: "원자가 전자를 잃었을 때 원자의 전기적 상태는?", a: ["(+) 대전 상태", "(-) 대전 상태", "중성 상태", "방전 상태"], cor: 0, exp: "(-) 성질인 전자를 잃으면 상대적으로 (+)인 양성자가 많아지므로 (+)로 대전됩니다." },
+        { q: "물체가 전기를 띠게 되는 현상을 무엇이라 하는가?", a: ["대전", "전도", "절연", "분전"], cor: 0, exp: "물체가 전자를 얻거나 잃어서 (+) 또는 (-) 전기를 띠게 되는 현상을 '대전'이라고 합니다." },
+        { q: "전기력선의 방향은 어디서 나와 어디로 향하는가?", a: ["(+)전하에서 나와 (-)전하로", "(-)전하에서 나와 (+)전하로", "고전압에서 저전압으로", "전류의 반대 방향으로"], cor: 0, exp: "전기력선은 항상 (+)에서 시작하여 (-)에서 끝나는 것으로 약속되어 있습니다." },
+        { q: "전자 1개의 질량과 양성자 1개의 질량을 비교하면?", a: ["양성자가 훨씬 무겁다", "전자가 훨씬 무겁다", "둘의 질량은 같다", "원자 번호에 따라 다르다"], cor: 0, exp: "양성자는 전자보다 약 1,840배 정도 더 무겁습니다." },
+        { q: "다음 중 도체(전기가 잘 통하는 물질)의 특징은?", a: ["자유 전자가 많다", "원자가 전자가 꽉 차 있다", "원자핵이 매우 크다", "비전도성 결합을 한다"], cor: 0, exp: "전기가 잘 통한다는 것은 전하를 운반할 '자유 전자'가 물질 내에 풍부하다는 뜻입니다." }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+
+    function loadQuiz() {
+        const qData = quizData[currentIdx];
+        document.getElementById('progress').innerText = `문제 ${currentIdx + 1} / 10`;
+        document.getElementById('question').innerText = qData.q;
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        qData.a.forEach((opt, index) => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.innerText = `${index + 1}. ${opt}`;
+            div.onclick = () => checkQuiz(index, div);
+            optionsDiv.appendChild(div);
+        });
+        document.getElementById('explanation').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'none';
+    }
+
+    function checkQuiz(choice, element) {
+        const correctIdx = quizData[currentIdx].cor;
+        const options = document.querySelectorAll('.quiz-option');
+        options.forEach(opt => opt.onclick = null);
+        if (choice === correctIdx) { element.classList.add('correct'); score++; }
+        else { element.classList.add('wrong'); options[correctIdx].classList.add('correct'); }
+        document.getElementById('exp-text').innerText = quizData[currentIdx].exp;
+        document.getElementById('explanation').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'inline-block';
+        if(currentIdx === 9) document.getElementById('btn-next').innerText = "결과 보기";
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < 10) loadQuiz();
+        else { alert(`테스트 종료! 점수: ${score * 10}점`); currentIdx = 0; score = 0; loadQuiz(); }
+    }
+
+    window.onload = () => { updateAtom(10); loadQuiz(); };
+    window.onresize = () => updateAtom(parseInt(document.getElementById('protonRange').value));
+
+    function nextQuestion() {
+    currentIdx++;
+    if (currentIdx < quizData.length) {
+        loadQuiz();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    const total = quizData.length;
+    const finalScore = score * (100 / total);
+    let rank = "";
+    let emoji = "";
+
+    // 랭크 판정 로직
+    if (score === total) {
+        rank = "전기 마스터 (S급)";
+        emoji = "👑";
+    } else if (score >= total * 0.8) {
+        rank = "베테랑 기술자 (A급)";
+        emoji = "🔧";
+    } else if (score >= total * 0.6) {
+        rank = "숙련된 조수 (B급)";
+        emoji = "💡";
+    } else {
+        rank = "전기 초보 (C급)";
+        emoji = "👶";
+    }
+
+    document.getElementById('rankBadge').innerText = emoji;
+    document.getElementById('rankName').innerText = rank;
+    document.getElementById('finalScore').innerText = `총 ${total}문제 중 ${score}문제를 맞혔습니다! (${finalScore}점)`;
+    document.getElementById('resultModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('resultModal').style.display = 'none';
+    currentIdx = 0;
+    score = 0;
+    loadQuiz();
+}
+</script>
+</body>
+</html>
